@@ -32,6 +32,7 @@ def adding_start_end_tags(sentences_arr):
     return sent_with_tags
 
 
+
 sentences_arr = prep(para)
 print(sentences_arr)
 sent_with_tags = adding_start_end_tags(sentences_arr)
