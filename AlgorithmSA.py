@@ -2,8 +2,6 @@ import nltk
 import spacy
 import deplacy
 import re
-from nltk.stem import WordNetLemmatizer
-lemmatizer = WordNetLemmatizer()
 
 nlp = spacy.load('en_core_web_sm')
 
