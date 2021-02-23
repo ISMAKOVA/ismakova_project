@@ -37,6 +37,21 @@ def lemmatization(sentence):
             lemm_sent.append(word.lemma_)
     return ' '.join(lemm_sent)
 
+
+def polarity_modifiers(sentence):
+    return sentence.replace('not', '<ALT>').replace('no', '<ALT>').replace('neither', '<ALT>').replace('never', '<ALT>') \
+        .replace('none', '<ALT>').replace('nobody', '<ALT>').replace('nothing', '<ALT>').replace('nowhere', '<ALT>')\
+        .replace('without', '<WT>')
+
+
+def polarity_amplifiers(sentence):
+    return sentence.replace('very', '<INC>').replace('absolutely', '<INC>').replace('completely', '<INC>')\
+        .replace('ever', '<INC>')
+
+
+def polarity_anti_modifiers(sentence):
+    return sentence.replace('so', '<TH>').replace('such', '<TH>')
+
 # dividing sentence into clause, but only for Compound Sentences
 def divide_into_clauses(sentence):
     doc = nlp(sentence)
@@ -83,16 +98,20 @@ def algorithm_sa_without_clauses(text):
     return tagged_inner_text
 
 
-example = 'The CIA has been incompetent from its inception. ' \
+example = 'The CIA has been not incompetent from its inception. ' \
           'The roster of incompetence includes subversion operations that cost the lives of hundreds of agents and accomplished nothing; ' \
           'CIA-managed coups that backfired, the Bay of Pigs and many others. ' \
           'Even operations that "succeeded" were pyrrhicThe CIA has been incompetent from its inception. ' \
           'I stopped believing in Santa Claus when my mother took me to see him in a department store, and he asked for my autograph. ' \
           'When you write a comic strip, the person on the left always speaks first. ' \
           'I used to jog, but the ice cubes kept falling out of my glass. '
-example2 = 'The CIA has been incompetent from its inception. The roster of incompetence includes subversion operations that cost the lives of hundreds of agents and accomplished nothing; CIA-managed coups that backfired, the Bay of Pigs and many others. Even operations that "succeeded" were pyrrhic'
+example2 = 'The CIA has been not no without incompetent from its inception. ' \
+           'The roster of incompetence includes subversion operations that cost the lives of hundreds of agents and accomplished nothing; CIA-managed coups that backfired, the Bay of Pigs and many others. Even operations that "succeeded" were pyrrhic'
 result = algorithm_sa_without_clauses(example)
-print(result)
+# print(result)
+
+alt = polarity_modifiers(example2)
+print(alt)
 # print('-----------tagged_end_text------------')
 # tagged_end_text = [replace_end_symbols(sentence) for sentence in sentences]
 # print(tagged_end_text)
