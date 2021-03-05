@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import qdarkgraystyle
+import AlgorithmSA as algorithm
 
 
 class AppWindow(QMainWindow):
@@ -112,6 +113,33 @@ class Tabs(QWidget):
         self.layout.addWidget(self.tabs)
         self.setLayout(self.layout)
 
+        self.btn1.clicked.connect(self.btn_clicked)
+        self.btn2.clicked.connect(self.btn_clicked)
+        self.btn3.clicked.connect(self.btn_clicked)
+
+    def btn_clicked(self):
+        sender = self.sender()
+        if sender.text() == 'Do sentiment analysis':
+            self.tableResult.setRowCount(0)
+            text = self.textBox1.toPlainText()
+            if text != "":
+                self.btn2.setEnabled(True)
+                self.btn3.setEnabled(True)
+                splitted_text, result_text = algorithm.algorithm_sa_without_clauses(text)
+                #self.textBox2.setPlainText(' '.join(result_text))
+                for i in result_text:
+                    num_rows = self.tableResult.rowCount()
+                    self.tableResult.insertRow(num_rows)
+                    self.tableResult.setItem(num_rows, 2, QTableWidgetItem(i))
+
+        elif sender.text() == 'Positive':
+            self.textBox2.setPlainText(' '.join(sender.text()))
+            self.btn2.setEnabled(False)
+            self.btn3.setEnabled(False)
+        elif sender.text() == 'Negative':
+            self.textBox2.setPlainText(' '.join(sender.text()))
+            self.btn2.setEnabled(False)
+            self.btn3.setEnabled(False)
 
 
 

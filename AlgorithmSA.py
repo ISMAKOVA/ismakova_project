@@ -2,7 +2,7 @@ import nltk
 import spacy
 import deplacy
 import re
-
+import nrclex
 
 nlp = spacy.load('en_core_web_sm')
 
@@ -109,7 +109,7 @@ example = 'The CIA has been not incompetent from its inception. ' \
 example2 = 'The CIA has been not no without incompetent from its inception. ' \
            'The roster of incompetence includes subversion operations that cost the lives of hundreds of agents and accomplished nothing; CIA-managed coups that backfired, the Bay of Pigs and many others. Even operations that "succeeded" were pyrrhic'
 result = algorithm_sa_without_clauses(example)
-# print(result)
+print(result)
 
 alt = polarity_modifiers(example2)
 print(alt)
