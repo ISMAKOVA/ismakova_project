@@ -2,6 +2,7 @@ import nltk
 import spacy
 import deplacy
 import re
+import csv
 from nrclex import NRCLex
 
 nlp = spacy.load('en_core_web_sm')
@@ -78,7 +79,6 @@ def lemmatization(sentence):
 
 def apply_rules(sentence):
     count = 0
-    print("sentence = ", sentence)
     regex_rule_1_1 = re.compile('<ALT>((?!<Z>|<CJ>|<TH>|<NEG>).)*<POS>|<POS>((?!<Z>|<CJ>|<TH>|<NEG>).)*<ALT>')
     regex_rule_1_2 = re.compile('<ALT>((?!<Z>|<CJ>|<TH>|<POS>).)*<NEG>|<NEG>((?!<Z>|<CJ>|<TH>|<POS>).)*<ALT>')
     regex_rule_2_1 = re.compile('<INC>((?!<Z>|<CJ>|<TH>|<POS>).)*<NEG>|<NEG>((?!<Z>|<CJ>|<TH>|<POS>).)*<INC>')
@@ -88,26 +88,41 @@ def apply_rules(sentence):
     regex_rule_4 = re.compile('<S><POS><QM>')
     regex_rule_5 = re.compile('<S>((?!<NEG>|<POS>).)*<QM>')
     regex_rule_6 = re.compile('<Q><POS><Q>')
-    regex_rule_7_1 = re.compile('(?:<WT>|<ALT>)*<POS>')
-    regex_rule_7_2 = re.compile('(?:<WT>|<ALT>)*<NEG>')
+    regex_rule_7_1 = re.compile('(?:<WT>|<ALT>)<POS>')
+    regex_rule_7_2 = re.compile('(?:<WT>|<ALT>)<NEG>')
     regex_rule_8 = re.compile('.*<EM>')
     regex_rule_9_1 = re.compile('<POS><CAP>|<CAP><POS>')
     regex_rule_9_2 = re.compile('<NEG><CAP>|<CAP><NEG>')
 
+    #print(1, sentence)
     sentence = re.sub(regex_rule_3_1, "<POS>", sentence)
+    # print(2, sentence)
     sentence = re.sub(regex_rule_3_2, "<NEG>", sentence)
+    # print(3, sentence)
     sentence = re.sub(regex_rule_1_1, "<NEG>", sentence)
+    # print(4, sentence)
     sentence = re.sub(regex_rule_1_2, "<POS>", sentence)
+    # print(5, sentence)
     sentence = re.sub(regex_rule_2_1, "<NEG><NEG>", sentence)
+    # print(6, sentence)
     sentence = re.sub(regex_rule_2_2, "<POS><POS>", sentence)
+    # print(7, sentence)
     sentence = sentence.replace('<QM><EM>', '<QM>')
+    # print(8, sentence)
     sentence = re.sub(regex_rule_4, "<NEG>", sentence)
+    # print(9, sentence)
     sentence = re.sub(regex_rule_5, "<NEG>", sentence)
+    # print(10, sentence)
     sentence = re.sub(regex_rule_6, "<NEG>", sentence)
+    # print(11, sentence)
     sentence = re.sub(regex_rule_7_1, "<NEG>", sentence)
+    # print(12, sentence)
     sentence = re.sub(regex_rule_7_2, "<POS>", sentence)
+    # print(13, sentence)
     sentence = re.sub(regex_rule_9_1, "<POS><POS>", sentence)
+    # print(14, sentence)
     sentence = re.sub(regex_rule_9_2, "<NEG><NEG>", sentence)
+    # print(15, sentence)
 
     count += -1 * len(re.findall(re.compile('<NEG>'), sentence))
     count += 1 * len(re.findall(re.compile('<POS>'), sentence))
@@ -116,7 +131,7 @@ def apply_rules(sentence):
             count += 1
         else:
             count -= 1
-
+    print(count)
     return sentence, count
 
 
@@ -131,13 +146,74 @@ def algorithm_sa_without_clauses(text):
     #print(polatity_do)
     res = [delete_words(sentence) for sentence in polatity_do]
     with_rules = [apply_rules(sentence) for sentence in res]
-    print(with_rules)
+    #print(with_rules)
     count_words = sum([len(sentence.split()) for sentence in marked_text])
-    print(count_words)
-    return with_rules
+
+    return sentences, with_rules
 
 
-example = 'LOVE! The CIA has been not incompetent from its inception. ' \
+def form_data(text):
+    formed_data = []
+    total_res = 0
+    sentences, with_rules = algorithm_sa_without_clauses(text)
+    for i in range(len(sentences)):
+        formed_data.append([sentences[i], with_rules[i][0], with_rules[i][1]])
+        total_res += with_rules[i][1]
+    return formed_data, total_res
+
+
+def write_doc(text):
+    res = ""
+    formed_data, total_res = form_data(text)
+    for i in formed_data:
+        res += i[0]
+    with open("doc.csv", 'a', encoding='utf-8') as file:
+        a_pen = csv.writer(file)
+        # columns = ['doc', 'class']
+        # a_pen.writerow(columns)
+        a_pen.writerow([res, total_res])
+
+
+def write_confusion_matrix(number):
+    conf_m = []
+    with open("confusion_matrix.csv") as f:
+        reader = csv.DictReader(f, delimiter=',')
+        for line in reader:
+            conf_m.append([line["TP"], line["FP"], line["TN"], line["FN"]])
+    if number == 0:
+        conf_m[0][0] = int(conf_m[0][0])+1
+    elif number == 1:
+        conf_m[0][1] = int(conf_m[0][1]) + 1
+    elif number == 2:
+        conf_m[0][2] = int(conf_m[0][2]) + 1
+    elif number == 3:
+        conf_m[0][3] = int(conf_m[0][3]) + 1
+    with open("confusion_matrix.csv", 'w', encoding='utf-8') as file:
+        a_pen = csv.writer(file)
+        columns = ['TP', 'FP', 'TN', 'FN']
+        a_pen.writerow(columns)
+        a_pen.writerow([conf_m[0][0], conf_m[0][1], conf_m[0][2], conf_m[0][3]])
+
+
+def read_confusion_matrix():
+    conf_m = []
+    with open("confusion_matrix.csv") as f:
+        reader = csv.DictReader(f, delimiter=',')
+        for line in reader:
+            conf_m.append([line["TP"], line["FP"], line["TN"], line["FN"]])
+    return conf_m
+
+
+def count_words(text):
+    sentences = nltk.sent_tokenize(text)
+    count_words = sum([len(sentence.split()) for sentence in sentences])
+    print("Words: ", count_words)
+    write_doc(text)
+    return count_words
+
+
+
+example = 'Happy? LOVE! The CIA has been not incompetent from its inception. ' \
           'The roster of incompetence includes subversion operations that cost the lives of hundreds of agents and accomplished nothing; ' \
           'CIA-managed coups that backfired, the Bay of Pigs and many others. ' \
           'Even operations that "succeeded" were pyrrhicThe CIA has been incompetent from its inception. ' \
@@ -146,5 +222,9 @@ example = 'LOVE! The CIA has been not incompetent from its inception. ' \
           'I used to jog, but the ice cubes kept falling out of my glass. '
 example2 = '<POS> The CIA has been not no without incompetent from its inception. ' \
            'The roster of incompetence includes subversion operations that cost the lives of hundreds of agents and accomplished nothing; CIA-managed coups that backfired, the Bay of Pigs and many others. Even operations that "succeeded" were pyrrhic'
-result = algorithm_sa_without_clauses(example)
-print(result)
+# result = algorithm_sa_without_clauses(example)
+# print()
+# for i in form_data(example):
+#     print(i[0], i[1], i[2])
+
+write_confusion_matrix(2)
