@@ -1,7 +1,5 @@
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
 import qdarkgraystyle
 import AlgorithmSA as algorithm
 
@@ -36,7 +34,7 @@ class Tabs(QWidget):
 
         # Add tabs
         self.tabs.addTab(self.tab1, "Sentiment Analysis")
-        self.tabs.addTab(self.tab2, "Evaluating the classifier's efficiency")
+        self.tabs.addTab(self.tab2, "Statistics")
 
         # Create first tab ----------------------------------------------------------
         self.tab1.layout = QGridLayout(self)
@@ -86,11 +84,12 @@ class Tabs(QWidget):
         self.statistics = QPushButton('Statistics', self)
         self.statistics.resize(self.statistics.sizeHint())
         self.doc = QPushButton('Documents', self)
+        self.doc.resize(self.doc.sizeHint())
 
-        self.textBox3 = QPlainTextEdit(self)
+        self.table2 = QTableWidget(self)
         self.tab2.layout.addWidget(self.statistics, 0, 0, 1, 1)
         self.tab2.layout.addWidget(self.doc, 1, 0, 1, 1)
-        self.tab2.layout.addWidget(self.textBox3, 0, 1, 7, 1)
+        self.tab2.layout.addWidget(self.table2, 0, 1, 7, 1)
 
         self.tab1.setLayout(self.tab1.layout)
         self.tab2.setLayout(self.tab2.layout)
@@ -102,27 +101,28 @@ class Tabs(QWidget):
         self.btn2.clicked.connect(self.btn_clicked)
         self.btn3.clicked.connect(self.btn_clicked)
         self.statistics.clicked.connect(self.btn_statistics)
-
+        self.doc.clicked.connect(self.btn_statistics)
 
     def btn_clicked(self):
-        total = 0
+        text = self.textBox1.toPlainText()
         sender = self.sender()
         if sender.text() == 'Do sentiment analysis':
             self.tableResult.setRowCount(0)
-            text = self.textBox1.toPlainText()
             if text != "":
                 self.btn2.setEnabled(True)
                 self.btn3.setEnabled(True)
                 result_data, total_count = algorithm.form_data(text)
                 count_word = algorithm.count_words(text)
-                total = total_count
                 self.textBox2.setPlainText("The number of words in the document: "+str(count_word)
                                            + "\nTotal count of the document: " + str(total_count))
                 self.textBox2.appendPlainText("Conclusion: positive" if total_count > 0 else "Conclusion: negative")
                 conf_t = algorithm.read_confusion_matrix()
-                self.textBox2.appendPlainText("Precision: " + str(int(conf_t[0][0])/(int(conf_t[0][0])+int(conf_t[0][1]))))
-                self.textBox2.appendPlainText(
-                    "Recall: " + str(int(conf_t[0][0]) / (int(conf_t[0][0]) + int(conf_t[0][3]))))
+                tp = int(conf_t[0][0])
+                fp = int(conf_t[0][1])
+                fn = int(conf_t[0][3])
+
+                #self.textBox2.appendPlainText("Precision: " + str(int(conf_t[0][0])/(int(conf_t[0][0])+int(conf_t[0][1]))))
+               # self.textBox2.appendPlainText("Recall: " + str(int(conf_t[0][0]) / (int(conf_t[0][0]) + int(conf_t[0][3]))))
                 for i in result_data:
                     num_rows = self.tableResult.rowCount()
                     self.tableResult.insertRow(num_rows)
@@ -131,32 +131,71 @@ class Tabs(QWidget):
                     self.tableResult.setItem(num_rows, 2, QTableWidgetItem(str(i[2])))
 
         elif sender.text() == 'Positive':
-            self.textBox2.setPlainText(' '.join(sender.text()))
-            if total > 0:
-                algorithm.write_confusion_matrix(0)
-            else:
-                algorithm.write_confusion_matrix(3)
-            self.btn2.setEnabled(False)
-            self.btn3.setEnabled(False)
+            if text != "":
+                result_data, total_count = algorithm.form_data(text)
+                self.textBox2.setPlainText(' '.join(sender.text()))
+                if total_count > 0:
+                    algorithm.write_confusion_matrix(0)
+                else:
+                    algorithm.write_confusion_matrix(3)
+                self.btn2.setEnabled(False)
+                self.btn3.setEnabled(False)
         elif sender.text() == 'Negative':
-            self.textBox2.setPlainText(' '.join(sender.text()))
-            if total > 0:
-                algorithm.write_confusion_matrix(1)
-            else:
-                algorithm.write_confusion_matrix(2)
-            self.btn2.setEnabled(False)
-            self.btn3.setEnabled(False)
+            if text != "":
+                result_data, total_count = algorithm.form_data(text)
+                self.textBox2.setPlainText(' '.join(sender.text()))
+                if total_count > 0:
+                    algorithm.write_confusion_matrix(1)
+                else:
+                    algorithm.write_confusion_matrix(2)
+                self.btn2.setEnabled(False)
+                self.btn3.setEnabled(False)
 
     def btn_statistics(self):
         sender = self.sender()
         if sender.text() == 'Statistics':
+            self.table2.setRowCount(0)
+            self.table2.setColumnCount(7)
+            self.table2.setHorizontalHeaderLabels(['TP', 'FP', 'TN', 'FN', 'Precision', 'Recall', 'F1'])
+            self.table2.setColumnWidth(0, 120)
+            self.table2.setColumnWidth(1, 120)
+            self.table2.setColumnWidth(2, 120)
+            self.table2.setColumnWidth(3, 120)
+            self.table2.setColumnWidth(4, 200)
+            self.table2.setColumnWidth(5, 150)
+            self.table2.setColumnWidth(6, 150)
+
             conf_t = algorithm.read_confusion_matrix()
-            self.textBox3.setPlainText("TP: " + conf_t[0][0])
-            self.textBox3.appendPlainText("FP: " + conf_t[0][1])
-            self.textBox3.appendPlainText("TN: " + conf_t[0][2])
-            self.textBox3.appendPlainText("FN: " + conf_t[0][3])
-            self.textBox3.appendPlainText("Precision: " + str(int(conf_t[0][0])/(int(conf_t[0][0])+int(conf_t[0][1]))))
-            self.textBox3.appendPlainText("Recall: " + str(int(conf_t[0][0]) / (int(conf_t[0][0]) + int(conf_t[0][3]))))
+            tp = int(conf_t[0][0])
+            fp = int(conf_t[0][1])
+            fn = int(conf_t[0][3])
+            precision = tp/(tp+fp)
+            recall =tp/(tp+fn)
+            f1 = 2*(precision*recall/(precision+recall))
+            num_rows = self.table2.rowCount()
+            self.table2.insertRow(num_rows)
+            for i in range(len(conf_t[0])):
+                self.table2.setItem(num_rows, i, QTableWidgetItem(conf_t[0][i]))
+            self.table2.setItem(num_rows, 4, QTableWidgetItem(str(precision)))
+            self.table2.setItem(num_rows, 5, QTableWidgetItem(str(recall)))
+            self.table2.setItem(num_rows, 6, QTableWidgetItem(str(f1)))
+
+        elif sender.text() == 'Documents':
+            self.table2.setRowCount(0)
+            self.table2.setColumnCount(6)
+            self.table2.setHorizontalHeaderLabels(['doc', 'markup', 'count', 'ton'])
+            self.table2.setColumnWidth(0, 500)
+            self.table2.setColumnWidth(1, 400)
+            self.table2.setColumnWidth(2, 150)
+            self.table2.setColumnWidth(3, 150)
+            docs = algorithm.read_doc()
+            for i in docs:
+                num_rows = self.table2.rowCount()
+                self.table2.insertRow(num_rows)
+                self.table2.setItem(num_rows, 0, QTableWidgetItem(i[0]))
+                self.table2.setItem(num_rows, 1, QTableWidgetItem(i[1]))
+                self.table2.setItem(num_rows, 2, QTableWidgetItem(i[2]))
+                self.table2.setItem(num_rows, 3, QTableWidgetItem(i[3]))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

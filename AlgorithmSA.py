@@ -8,11 +8,12 @@ from nrclex import NRCLex
 nlp = spacy.load('en_core_web_sm')
 
 
-# adding symbols to start and replacing an end
+# добавление тегов в начало и конец предложения
 def replace_end_symbols(text):
-    return ''.join(['<S> ', text.replace('.', '<S/>').replace('?!', '<QM>').replace('!', '<EM>').replace('?', '<QM>')])
+    return ''.join(['<S> ', text.replace('.', '<S/>')
+                   .replace('?!', '<QM>').replace('!', '<EM>').replace('?', '<QM>')])
 
-
+# замена специальнох слов и символов пунктуации тегами
 def replace_all_tags(sentence):
     regex_alt = re.compile('\W?(not|no|never|none|neither|nobody|nothing|nowhere)\W')
     regex_th = re.compile('\W?(so|such)\W')
@@ -20,9 +21,10 @@ def replace_all_tags(sentence):
     sentence = re.sub(regex_alt, " <ALT> ", sentence)
     sentence = re.sub(regex_th, " <TH> ", sentence)
     sentence = re.sub(regex_inc, " <INC> ", sentence)
-    return sentence.replace('without', '<WT>').replace('"', '<Q>').replace(',', '<Z>').replace(':', '<Z>').replace(';', '<Z>').replace('-', '<Z>')
+    return sentence.replace('without', '<WT>').replace('"', '<Q>').replace(',', '<Z>')\
+        .replace(':', '<Z>').replace(';', '<Z>').replace('-', '<Z>')
 
-
+# замена слов с позитивным и негативным окрасом на соответсвтующие теги
 def mark_neg_pos(sentence):
     result = []
     for word in sentence.split():
@@ -138,15 +140,15 @@ def apply_rules(sentence):
 def algorithm_sa_without_clauses(text):
     sentences = nltk.sent_tokenize(text)
     lemm_text = [lemmatization(sentence) for sentence in sentences]
-    #print(lemm_text)
+    print(lemm_text)
     marked_text = [mark_caps_CJ_pos_neg(sentence) for sentence in lemm_text]
     tagged_end_text = [replace_end_symbols(sentence) for sentence in marked_text]
-    #print(tagged_end_text)
+    print(tagged_end_text)
     polatity_do = [replace_all_tags(sentence) for sentence in tagged_end_text]
-    #print(polatity_do)
+    print(polatity_do)
     res = [delete_words(sentence) for sentence in polatity_do]
     with_rules = [apply_rules(sentence) for sentence in res]
-    #print(with_rules)
+    print(with_rules)
     count_words = sum([len(sentence.split()) for sentence in marked_text])
 
     return sentences, with_rules
@@ -164,14 +166,19 @@ def form_data(text):
 
 def write_doc(text):
     res = ""
+    markup = ""
     formed_data, total_res = form_data(text)
     for i in formed_data:
         res += i[0]
+        markup += i[1]
     with open("doc.csv", 'a', encoding='utf-8') as file:
         a_pen = csv.writer(file)
         # columns = ['doc', 'class']
         # a_pen.writerow(columns)
-        a_pen.writerow([res, total_res])
+        if total_res > 0:
+            a_pen.writerow([res, markup, total_res, 1])
+        else:
+            a_pen.writerow([res, markup, total_res, 0])
 
 
 def write_confusion_matrix(number):
@@ -204,6 +211,21 @@ def read_confusion_matrix():
     return conf_m
 
 
+def read_doc():
+    conf_m = []
+    c = 0
+    with open("doc.csv") as f:
+        reader = csv.DictReader(f, delimiter=',')
+        for line in reader:
+            if c > 100:
+                break
+            else:
+                print(line)
+                conf_m.append([line["doc"], line["markup"], line["count"], line[" ton"]])
+                c += 1
+    return conf_m
+
+
 def count_words(text):
     sentences = nltk.sent_tokenize(text)
     count_words = sum([len(sentence.split()) for sentence in sentences])
@@ -212,6 +234,21 @@ def count_words(text):
     return count_words
 
 
+def work_with_dataset(file_name):
+    file = open(file_name)
+    read_tsv = csv.reader(file, delimiter="\t")
+    for line in read_tsv:
+        if line[0]!= "id":
+            write_doc(line[2])
+            formed_data, total_res = form_data(line[2])
+            if int(line[1]) == 1 and total_res > 0:
+                write_confusion_matrix(0)
+            elif int(line[1]) == 1 and total_res <= 0:
+                write_confusion_matrix(1)
+            elif int(line[1]) == 0 and total_res < 0:
+                write_confusion_matrix(2)
+            elif int(line[1]) == 0 and total_res >= 0:
+                write_confusion_matrix(3)
 
 example = 'Happy? LOVE! The CIA has been not incompetent from its inception. ' \
           'The roster of incompetence includes subversion operations that cost the lives of hundreds of agents and accomplished nothing; ' \
@@ -227,4 +264,4 @@ example2 = '<POS> The CIA has been not no without incompetent from its inception
 # for i in form_data(example):
 #     print(i[0], i[1], i[2])
 
-write_confusion_matrix(2)
+# work_with_dataset("imdb_TrainData.tsv")
