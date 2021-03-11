@@ -13,6 +13,7 @@ def replace_end_symbols(text):
     return ''.join(['<S> ', text.replace('.', '<S/>')
                    .replace('?!', '<QM>').replace('!', '<EM>').replace('?', '<QM>')])
 
+
 # замена специальнох слов и символов пунктуации тегами
 def replace_all_tags(sentence):
     regex_alt = re.compile('\W?(not|no|never|none|neither|nobody|nothing|nowhere)\W')
@@ -23,6 +24,7 @@ def replace_all_tags(sentence):
     sentence = re.sub(regex_inc, " <INC> ", sentence)
     return sentence.replace('without', '<WT>').replace('"', '<Q>').replace(',', '<Z>')\
         .replace(':', '<Z>').replace(';', '<Z>').replace('-', '<Z>')
+
 
 # замена слов с позитивным и негативным окрасом на соответсвтующие теги
 def mark_neg_pos(sentence):
