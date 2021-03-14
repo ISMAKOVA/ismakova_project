@@ -227,6 +227,28 @@ class TabForFile(QWidget):
                 algorithm.write_confusion_matrix(3)
 
 
+class TabForStatistics(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.Width = 1200
+
+        # Таблица с результатами
+        self.tableResult = QTableWidget(self)
+        self.tableResult.setRowCount(0)
+        self.tableResult.setColumnCount(10)
+        self.tableResult.setHorizontalHeaderLabels(
+            ['TP', 'FP', 'TN', 'FN', 'Precision_T', 'Recall_T', 'F1_T', 'Precision_F', 'Recall_F', 'F1_F'])
+        for i in range(7):
+            self.tableResult.setColumnWidth(i, 120)
+        self.statistic = algorithm.statistic()
+        num_rows = self.table2.rowCount()
+        for i in range(len(self.statistic)):
+            self.tableResult.setItem(num_rows, i, QTableWidgetItem(self.statistic[i]))
+
+        #статистика
+
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkgraystyle.load_stylesheet())

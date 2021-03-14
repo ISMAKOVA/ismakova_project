@@ -246,6 +246,26 @@ def work_with_x_sv(path, x):
     write_full_dataset(dataset, splitted_path[-2])
 
 
+def statistic():
+    file = []
+    with open("confusion_matrix.csv") as f:
+        reader = csv.DictReader(f, delimiter=',')
+        for line in reader:
+            file.append([int(line["TP"]), int(line["FP"]), int(line["TN"]), int(line["FN"])])
+
+    result = []
+    for i in file:
+        precision_t = int(i[0])/(int(i[0])+int(i[1]))
+        recall_t = int(i[0])/(int(i[0])+int(i[3]))
+        precision_f = int(i[2])/(int(i[2])+int(i[1]))
+        recall_f = int(i[2])/(int(i[2])+int(i[3]))
+        f1_t = 2 * (precision_t * recall_t / (precision_t + recall_t))
+        f1_f = 2 * (precision_f * recall_f / (precision_f + recall_f))
+        result.append([i[0], i[1], i[2], i[3], precision_t, recall_t, precision_f, recall_f, f1_t, f1_f])
+
+    return result
+
+
 # def form_data(text):
 #     formed_data = []
 #     total_res = 0
