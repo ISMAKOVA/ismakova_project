@@ -145,7 +145,7 @@ def algorithm_sa_without_clauses(text):
     return sentences, with_rules, count_values, total_value_of_doc, sentiment
 
 
-def from_data(text):
+def form_data(text):
     result = []
     sentences, with_rules, count_values, total_value_of_doc, sentiment = algorithm_sa_without_clauses(text)
     for i in range(len(sentences)):
@@ -159,7 +159,7 @@ def make_sentiment_analysis(path):
     print(splitted_path[-1])
     if splitted_path[-1] == '.txt':
         text = read_txt(path)
-        return from_data(text)
+        return form_data(text)
     elif splitted_path[-1] == '.csv':
         work_with_x_sv(path, "csv")
         return None
