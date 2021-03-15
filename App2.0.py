@@ -38,11 +38,11 @@ class Tabs(QWidget):
 
         self.tabForTextBox = TabForTextBox()
         self.tabForFile = TabForFile()
-
+        self.tabForStatistics = TabForStatistics()
         # Add tabs
         self.tabs.addTab(self.tabForTextBox, "Sentiment Analysis (textbox)")
         self.tabs.addTab(self.tabForFile, "Sentiment Analysis (file)")
-        self.tabs.addTab(self.tab2, "Statistics")
+        self.tabs.addTab(self.tabForStatistics, "Statistics")
 
         # Add tabs to widget
         self.layout.addWidget(self.tabs)
@@ -109,6 +109,7 @@ class TabForTextBox(QWidget):
                 self.btn2.setEnabled(True)
                 self.btn3.setEnabled(True)
                 result, total_value_of_doc, sentiment = algorithm.form_data(text)
+                algorithm.write_one_text([result, total_value_of_doc, sentiment])
                 count_words = 0
                 for i in result:
                     count_words += len(i[0].split())
@@ -190,6 +191,7 @@ class TabForFile(QWidget):
         file_name = QFileDialog.getOpenFileName(self, 'Open file', home_dir, file_filter)
 
         result, total_value_of_doc, sentiment = algorithm.make_sentiment_analysis(file_name[0])
+        algorithm.write_one_text([result, total_value_of_doc, sentiment])
         if result != None:
             self.tableResult.setRowCount(0)
             count_words = 0
@@ -240,12 +242,20 @@ class TabForStatistics(QWidget):
         self.tableResult.setHorizontalHeaderLabels(
             ['TP', 'FP', 'TN', 'FN', 'Precision_T', 'Recall_T', 'F1_T', 'Precision_F', 'Recall_F', 'F1_F'])
         for i in range(7):
-            self.tableResult.setColumnWidth(i, 120)
-        self.statistic = algorithm.statistic()
-        num_rows = self.table2.rowCount()
-        for i in range(len(self.statistic)):
-            self.tableResult.setItem(num_rows, i, QTableWidgetItem(self.statistic[i]))
+            if i > 3:
+                self.tableResult.setColumnWidth(i, 160)
+            else:
+                self.tableResult.setColumnWidth(i, 100)
 
+        self.statistic = algorithm.statistic()
+        num_rows = self.tableResult.rowCount()
+        self.tableResult.insertRow(num_rows)
+        for i in range(len(self.statistic)):
+            self.tableResult.setItem(num_rows, i, QTableWidgetItem(str(self.statistic[i])))
+
+        self.layout = QGridLayout()
+        self.layout.addWidget(self.tableResult, 0, 0, 1, 1)
+        self.setLayout(self.layout)
         #статистика
 
 

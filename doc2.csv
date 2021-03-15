@@ -1,0 +1,2 @@
+id,doc,markup,count,sentiment
+1,How pathetic you are. I just hate you. But at the same time I can say that you are an amazing person. I live only thanks to you. You are my life.,<S>*<NEG>*<S/> <S>*<NEG>*<S/> <S>*<S/> <S>*<S/> <S>*<S/>,-2,0

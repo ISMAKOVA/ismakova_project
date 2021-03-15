@@ -138,8 +138,8 @@ def algorithm_sa_without_clauses(text):
     count_values = [count for sent, count in [apply_rules(sentence) for sentence in res]]
     total_value_of_doc = sum(count_values)
     sentiment = 1 if total_value_of_doc > 0 else 0
-    print(with_rules)
-    print(count_values)
+    #print(with_rules)
+    #print(count_values)
     count_words = sum([len(sentence.split()) for sentence in marked_text])
 
     return sentences, with_rules, count_values, total_value_of_doc, sentiment
@@ -198,6 +198,23 @@ def write_full_dataset(dataset, file_name):
         a_pen.writerow(columns)
         for line in dataset:
             a_pen.writerow(line[0], line[1], line[2], line[3], line[4])
+
+
+def write_one_text(formed_data):
+    with open('doc2.csv') as f:
+        count = sum(1 for _ in f)
+
+    with open("doc2.csv", 'a', encoding='utf-8') as file:
+        a_pen = csv.writer(file)
+        # columns = ['id', 'doc', 'markup', 'count', 'sentiment']
+        # a_pen.writerow(columns)
+        result, total_value_of_doc, sentiment = formed_data
+        doc = []
+        markup = []
+        for i in result:
+            doc.append(i[0])
+            markup.append(i[1])
+        a_pen.writerow([count, ' '.join(doc), ' '.join(markup), total_value_of_doc, sentiment])
 
 
 def additional_recording(file_name, line):
@@ -262,8 +279,8 @@ def statistic():
         f1_t = 2 * (precision_t * recall_t / (precision_t + recall_t))
         f1_f = 2 * (precision_f * recall_f / (precision_f + recall_f))
         result.append([i[0], i[1], i[2], i[3], precision_t, recall_t, precision_f, recall_f, f1_t, f1_f])
-
-    return result
+    print(result[0])
+    return result[0]
 
 
 # def form_data(text):
