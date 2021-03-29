@@ -1,0 +1,6 @@
+nltk==3.5
+spacy==3.0.3
+NRCLex==3.0.0
+PyQt5==5.15.3
+qdarkgraystyle==1.0.2
+

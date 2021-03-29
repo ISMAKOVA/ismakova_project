@@ -2,7 +2,6 @@ import sys
 from PyQt5.QtWidgets import *
 import qdarkgraystyle
 import AlgorithmSA as algorithm
-from PyQt5.QtGui import QIcon
 from pathlib import Path
 import re
 
